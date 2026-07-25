@@ -167,7 +167,7 @@
 
   &::before,
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     top: -4.5px;
     border: 5px solid transparent;
@@ -181,4 +181,221 @@
     right: 0;
     border-right-color: var(--border);
   }
+}
+
+/* *************  DIARY ********************* */
+
+* Настройки всей страницы */ body {
+  /* Убираем стандартные отступы браузера */
+  margin: 0;
+  /* Шрифт по умолчанию */
+  font-family: Arial, sans-serif;
+
+  /* Песочный фон всего приложения */
+  background-color: #f5efe2;
+}
+
+/* Главный контейнер приложения */
+
+.app {
+  /* Отступ от краёв окна */
+
+  padding: 20px;
+}
+
+/* Контейнер дневника:    слева список записей, справа редактор */
+
+.diary-layout {
+  /* Расположить блоки рядом друг с другом */
+
+  display: flex;
+
+  /* Расстояние между левым и правым блоком */
+  gap: 20px;
+
+  /* Отступ сверху */
+  margin-top: 20px;
+}
+
+/* Левая панель со списком записей */
+
+.entry-list {
+  /* Фиксированная ширина панели */
+
+  width: 300px;
+  min-width: 300px;
+  list-style: none;
+
+  /* Более тёмный песочный цвет */
+
+  background: #e8dcc0;
+  /* Внутренние отступы */
+
+  padding: 10px;
+  /* Скруглённые углы */
+
+  border-radius: 12px;
+
+  /* Лёгкая тень */
+
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Одна запись в списке */
+
+.entry-item {
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #f7f1e3;
+  border-radius: 8px;
+  cursor: pointer;
+  /* Плавная анимация */
+
+  transition: all 0.2s ease;
+}
+
+/* Эффект наведения мышью */
+
+.entry-item:hover {
+  /* Карточка становится светлее */
+
+  background: #fff7e6;
+
+  /* Немного сдвигается вправо */
+  transform: translateX(3px);
+}
+.entry-selected {
+  /* Выделенная запись */
+  /*background: #f0e1c6;*/
+  background: #d9c28c;
+
+  font-weight: bold;
+}
+
+/* Правая панель редактора */
+
+.editor {
+  /* Занимает всё оставшееся место */
+
+  flex: 1;
+}
+
+/* Большое поле для текста дневника */
+
+.diary-editor {
+  width: 100%;
+  height: 500px;
+  padding: 15px;
+
+  /* Убираем стандартную рамку */
+
+  border: none;
+  border-radius: 12px;
+  background: #fffdf7;
+
+  /* Тень вокруг блока */
+
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+
+  /* Разрешаем менять высоту мышью */
+
+  resize: vertical;
+
+  /* Размер текста */
+
+  font-size: 16px;
+
+  /* Межстрочный интервал */
+
+  line-height: 1.5;
+}
+
+/* Все кнопки приложения */
+
+button {
+  /* Внешний отступ */
+
+  margin: 5px;
+
+  /* Внутренний отступ */
+
+  padding: 8px 15px;
+
+  /* Убираем рамку */
+
+  border: none;
+
+  /* Скругляем углы */
+
+  border-radius: 8px;
+
+  /* Цвет кнопки */
+
+  background: #b68d40;
+
+  /* Цвет текста */
+
+  color: white;
+
+  /* Курсор в виде руки */
+
+  cursor: pointer;
+
+  /* Плавное изменение цвета */
+  transition: 0.2s;
+}
+
+/* Эффект наведения на кнопку */
+
+button:hover {
+  /* Более тёмный оттенок */
+
+  background: #8d6e2f;
+}
+
+/* Панель авторизации */
+
+.auth-panel {
+  /* Отступ снизу */
+
+  margin-bottom: 20px;
+}
+
+/* Поля Email и Пароль */
+
+.auth-panel input {
+  /* Отступ справа между полями */
+
+  margin-right: 10px;
+
+  /* Внутренний отступ */
+
+  padding: 8px;
+  /* Скругление */
+
+  border-radius: 6px;
+  /* Тонкая серая рамка */
+
+  border: 1px solid #ccc;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-window {
+  background: #f7f1e3;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  min-width: 320px;
 }
