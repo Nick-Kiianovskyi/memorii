@@ -124,10 +124,73 @@ function App() {
     loadEntries();
   };
 
+  //=== SAVE ENTRY ===
+
+  const saveEntry = async () => {
+    // Если запись НЕ выбрана
+
+    // создаём новую
+
+    if (!selectedEntry) {
+      await fetch("http://localhost:5000/entries", {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+
+          Authorization: localStorage.getItem("token"),
+        },
+
+        body: JSON.stringify({
+          content: text,
+        }),
+      });
+
+      loadEntries();
+
+      return;
+    }
+
+    // Если запись выбрана
+
+    // обновляем её
+
+    await fetch(
+      `http://localhost:5000/entries/${selectedEntry.id}`,
+
+      {
+        method: "PUT",
+
+        headers: {
+          "Content-Type": "application/json",
+
+          Authorization: localStorage.getItem("token"),
+        },
+
+        body: JSON.stringify({
+          content: text,
+        }),
+      },
+    );
+
+    loadEntries();
+  };
+
   //=== SELECT ENTRY ===
   const selectEntry = (entry) => {
     setSelectedEntry(entry);
     setText(entry.content);
+  };
+  // === NEW ENTRY ===
+
+  const newEntry = () => {
+    // снимаем выбор записи
+
+    setSelectedEntry(null);
+
+    // очищаем редактор
+
+    setText("");
   };
 
   //=== UPDATE ENTRY ===
@@ -222,11 +285,22 @@ function App() {
                 >
                   {/* Дата */}
 
-                  <strong>{new Date(e.created_at).toLocaleDateString()}</strong>
-                  <br />
+                  {/*<strong>{new Date(e.created_at).toLocaleDateString()}</strong> */}
+                  <div>
+                    <strong>
+                      {new Date(
+                        e.updated_at || e.created_at,
+                      ).toLocaleTimeString("uk-UA", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </strong>
+                  </div>
                   {/* Первые 30 символов */}
-                  {e.content.substring(0, 30)}
-                  <br />
+                  <div>{e.content.substring(0, 30)}</div>
 
                   <button
                     onClick={(event) => {
@@ -250,9 +324,10 @@ function App() {
                 placeholder="Місце для думок..."
               />
               <br />
-              <button onClick={addEntry}>        Додати       </button>
-
-              <button onClick={loadEntries}>        Оновити       </button>
+              {/*<button onClick={addEntry}>        Додати       </button> */}
+              <button onClick={newEntry}>        Новий запис       </button>
+              <button onClick={saveEntry}>        Зберегти       </button>
+              {/* <button onClick={loadEntries}>        Оновити       </button> */}
             </div>
           </div>
         </>

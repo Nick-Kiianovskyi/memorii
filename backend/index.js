@@ -58,10 +58,10 @@ app.post("/register", async (req, res) => {
 app.post("/entries", auth, async (req, res) => {
   const { content } = req.body;
   try {
-    await pool.query("INSERT INTO entries (user_id, content) VALUES ($1, $2)", [
-      req.user.id,
-      content,
-    ]);
+    await pool.query(
+      "INSERT INTO entries (user_id, content,created_at,updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+      [req.user.id, content],
+    );
 
     res.send("OK");
   } catch (err) {
@@ -74,7 +74,7 @@ app.post("/entries", auth, async (req, res) => {
 app.get("/entries", auth, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM entries WHERE user_id = $1 ORDER BY created_at DESC",
+      "SELECT * FROM entries WHERE user_id = $1 ORDER BY COALESCE(updated_at, created_at) DESC",
       [req.user.id],
     );
     res.json(result.rows);
@@ -137,6 +137,37 @@ app.delete("/entries/:id", auth, async (req, res) => {
     console.error("ERROR DELETE:", err);
 
     res.status(500).send("Ошибка удаления");
+  }
+});
+
+//=== UPDATE ENTRY ===
+
+app.put("/entries/:id", auth, async (req, res) => {
+  const { content } = req.body;
+
+  try {
+    await pool.query(
+      ` 
+
+ UPDATE entries 
+
+ SET content = $1,
+ updated_at = CURRENT_TIMESTAMP
+
+ WHERE id = $2 
+
+ AND user_id = $3 
+
+ `,
+
+      [content, req.params.id, req.user.id],
+    );
+
+    res.send("Updated");
+  } catch (err) {
+    console.error("ERROR UPDATE:", err);
+
+    res.status(500).send("Помилка оновлення");
   }
 });
 
