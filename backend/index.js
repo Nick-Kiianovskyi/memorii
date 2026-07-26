@@ -51,16 +51,42 @@ app.post("/register", async (req, res) => {
     res.status(500).send("Error registering user");
   }
 });
+//=== CATEGORIES ===
+console.log("Categories route loaded");
+app.get("/categories", auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      ` 
+
+ SELECT * 
+
+ FROM categories 
+
+ WHERE user_id = $1 
+
+ ORDER BY name 
+
+ `,
+
+      [req.user.id],
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).send("Помилка завантаження категорій");
+  }
+});
 
 //  ====ENTRIES====
 
-//app.post("/entries", async (req, res) => {
 app.post("/entries", auth, async (req, res) => {
-  const { content } = req.body;
+  const { title, content, category_id } = req.body;
   try {
     await pool.query(
-      "INSERT INTO entries (user_id, content,created_at,updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-      [req.user.id, content],
+      "INSERT INTO entries (user_id, title, content, category_id, created_at, updated_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+      [req.user.id, title, content, category_id],
     );
 
     res.send("OK");
@@ -73,10 +99,34 @@ app.post("/entries", auth, async (req, res) => {
 //app.get("/entries", async (req, res) => {
 app.get("/entries", auth, async (req, res) => {
   try {
+    //const result = await pool.query(
+    //"SELECT * FROM entries WHERE user_id = $1 ORDER BY COALESCE(updated_at, created_at) DESC",
+    //[req.user.id],
+    //);
     const result = await pool.query(
-      "SELECT * FROM entries WHERE user_id = $1 ORDER BY COALESCE(updated_at, created_at) DESC",
+      ` SELECT 
+
+ e.*, 
+
+ c.name AS category_name, 
+
+ c.color AS category_color 
+
+ FROM entries e 
+
+ LEFT JOIN categories c 
+
+ ON e.category_id = c.id 
+
+ WHERE e.user_id = $1 
+
+ ORDER BY COALESCE(e.updated_at, e.created_at) DESC 
+
+ `,
+
       [req.user.id],
     );
+
     res.json(result.rows);
   } catch (err) {
     console.error("ERROR GET:", err);
@@ -143,7 +193,7 @@ app.delete("/entries/:id", auth, async (req, res) => {
 //=== UPDATE ENTRY ===
 
 app.put("/entries/:id", auth, async (req, res) => {
-  const { content } = req.body;
+  const { title, content, category_id } = req.body;
 
   try {
     await pool.query(
@@ -151,16 +201,20 @@ app.put("/entries/:id", auth, async (req, res) => {
 
  UPDATE entries 
 
- SET content = $1,
+ SET
+ 
+ title = $1,
+ content = $2,
+    category_id = $3,
  updated_at = CURRENT_TIMESTAMP
 
- WHERE id = $2 
+ WHERE id = $4 
 
- AND user_id = $3 
+ AND user_id = $5 
 
  `,
 
-      [content, req.params.id, req.user.id],
+      [title, content, category_id, req.params.id, req.user.id],
     );
 
     res.send("Updated");

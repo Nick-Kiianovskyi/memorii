@@ -4,13 +4,15 @@ import { useState, useEffect } from "react";
 function App() {
   //=== const [text, setText] = useState("");
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const [title, setTitle] = useState("");
   const [text, setText] = useState("");
 
   const [entries, setEntries] = useState([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [deleteId, setDeleteId] = useState(null);
-
+  const [categories, setCategories] = useState([]);
+  const [categoryId, setCategoryId] = useState("");
   const addEntry = async () => {
     await fetch("http://localhost:5000/entries", {
       method: "POST",
@@ -142,7 +144,9 @@ function App() {
         },
 
         body: JSON.stringify({
+          title,
           content: text,
+          category_id: categoryId, // Use null if no category is selected
         }),
       });
 
@@ -168,18 +172,39 @@ function App() {
         },
 
         body: JSON.stringify({
+          title,
           content: text,
+          category_id: categoryId,
         }),
       },
     );
 
     loadEntries();
   };
+  //=== LOAD CATEGORIES ===
+  const loadCategories = async () => {
+    const res = await fetch(
+      "http://localhost:5000/categories",
+
+      {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      },
+    );
+
+    const data = await res.json();
+
+    setCategories(data);
+  };
 
   //=== SELECT ENTRY ===
   const selectEntry = (entry) => {
     setSelectedEntry(entry);
+
+    setTitle(entry.title || ""); // Assuming entry has a title property
     setText(entry.content);
+    setCategoryId(entry.category_id || ""); // Assuming entry has a category_id property
   };
   // === NEW ENTRY ===
 
@@ -189,8 +214,9 @@ function App() {
     setSelectedEntry(null);
 
     // очищаем редактор
-
+    setTitle(""); // Clear title for new entry
     setText("");
+    setCategoryId(""); // Clear category selection for new entry
   };
 
   //=== UPDATE ENTRY ===
@@ -203,7 +229,7 @@ function App() {
         "Content-Type": "application/json",
         Authorization: localStorage.getItem("token"),
       },
-      body: JSON.stringify({ content: text }),
+      body: JSON.stringify({ title, content: text, category_id: categoryId }),
     });
 
     loadEntries();
@@ -214,6 +240,7 @@ function App() {
     //=== loadEntries();
     if (localStorage.getItem("token")) {
       loadEntries();
+      loadCategories();
     }
   }, []);
 
@@ -248,28 +275,6 @@ function App() {
         <>
           <hr />
 
-          {/* <textarea
-            className="diary-editor"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Місце для думок..."
-          /> 
-          <br />
-          <button onClick={addEntry}>Додати</button>
-          <button onClick={loadEntries}>Оновити</button>
-
-          {/* Список записів   
-
-          <ul className="entry-list">
-            {entries.map((e) => (
-              <li key={e.id} className="entry-item">
-                {e.content}
-
-                <button onClick={() => deleteEntry(e.id)}>Видалити</button>
-              </li>
-            ))}
-          </ul>*/}
-
           <div className="diary-layout">
             {/* Левая колонка со списком записей */}
             <ul className="entry-list">
@@ -281,42 +286,72 @@ function App() {
                       ? "entry-item entry-selected"
                       : "entry-item"
                   }
+                  style={{
+                    backgroundColor: e.category_color
+                      ? e.category_color + "33"
+                      : "#f7f1e3", // Add transparency to the category color
+                  }}
                   onClick={() => selectEntry(e)}
                 >
                   {/* Дата */}
 
                   {/*<strong>{new Date(e.created_at).toLocaleDateString()}</strong> */}
                   <div>
-                    <strong>
+                    <span className="entry-date">
                       {new Date(
                         e.updated_at || e.created_at,
                       ).toLocaleTimeString("uk-UA", {
                         day: "2-digit",
                         month: "2-digit",
-                        year: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
-                    </strong>
+                    </span>
+                    {" | "}
+                    <span className="entry-title">
+                      {/* Title or ервые 10 символов */}
+                      {e.title || `***${e.content.substring(0, 14)}...`}{" "}
+                    </span>
                   </div>
-                  {/* Первые 30 символов */}
-                  <div>{e.content.substring(0, 30)}</div>
 
                   <button
+                    className="entry-delete"
                     onClick={(event) => {
                       event.stopPropagation();
 
-                      //===deleteEntry(e.id);
                       setDeleteId(e.id);
                     }}
                   >
-                    Видалити
+                    🗑
                   </button>
                 </li>
               ))}
             </ul>
             {/* Правая колонка */}
             <div className="editor">
+              <div className="editor-header">
+                <input
+                  type="text"
+                  className="entry-title-input"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="...назва.."
+                />
+
+                <select
+                  className="entry-category"
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                >
+                  <option value="">Без категорії</option>
+
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <textarea
                 className="diary-editor"
                 value={text}
