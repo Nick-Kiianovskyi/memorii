@@ -224,8 +224,127 @@ app.put("/entries/:id", auth, async (req, res) => {
     res.status(500).send("Помилка оновлення");
   }
 });
+//=== CATEGORIES ===
+app.post("/categories", auth, async (req, res) => {
+  const { name, color } = req.body;
 
-/===SERVER====/;
+  try {
+    await pool.query(
+      ` 
+
+ INSERT INTO categories 
+
+ ( 
+
+ user_id, 
+
+ name, 
+
+ color 
+
+ ) 
+
+ VALUES 
+
+ ( 
+
+ $1, 
+
+ $2, 
+
+ $3 
+
+ ) 
+
+ `,
+
+      [req.user.id, name, color],
+    );
+
+    res.send("OK");
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).send("ERROR");
+  }
+});
+//=== DELETE CATEGORY ===
+app.delete("/categories/:id", auth, async (req, res) => {
+  try {
+    const used = await pool.query(
+      ` 
+
+ SELECT COUNT(*) AS cnt 
+
+ FROM entries 
+
+ WHERE category_id = $1 
+
+ `,
+
+      [req.params.id],
+    );
+
+    if (Number(used.rows[0].cnt) > 0) {
+      return res.status(400).send("Категорія використовується в записах");
+    }
+
+    await pool.query(
+      ` 
+
+ DELETE FROM categories 
+
+ WHERE id = $1 
+
+ AND user_id = $2 
+
+ `,
+
+      [req.params.id, req.user.id],
+    );
+
+    res.send("Deleted");
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).send("Error");
+  }
+});
+//=== UPDATE CATEGORY ===
+app.put("/categories/:id", auth, async (req, res) => {
+  const { name, color } = req.body;
+
+  try {
+    await pool.query(
+      ` 
+
+ UPDATE categories 
+
+ SET 
+
+ name = $1, 
+
+ color = $2 
+
+ WHERE id = $3 
+
+ AND user_id = $4 
+
+ `,
+
+      [name, color, req.params.id, req.user.id],
+    );
+
+    res.send("Updated");
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).send("Error");
+  }
+});
+
+//===SERVER====//
+
 app.listen(5000, () => {
   console.log("Server started on port 5000");
 });

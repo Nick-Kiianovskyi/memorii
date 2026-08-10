@@ -219,11 +219,13 @@
 
 /* Левая панель со списком записей */
 
-.entry-list {
+.entries-panel {
   /* Фиксированная ширина панели */
+  width: 350px;
+  min-width: 350px;
+}
 
-  width: 300px;
-  min-width: 300px;
+.entry-list {
   list-style: none;
 
   /* Более тёмный песочный цвет */
@@ -235,9 +237,6 @@
   /* Скруглённые углы */
 
   border-radius: 12px;
-
-  /* Лёгкая тень */
-
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
   height: calc(100vh - 150px);
   overflow-y: auto;
@@ -246,11 +245,16 @@
 /* Одна запись в списке */
 
 .entry-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
   padding: 10px;
   margin-bottom: 10px;
   background: #f7f1e3;
   border-radius: 8px;
   cursor: pointer;
+
   /* Плавная анимация */
 
   transition: all 0.2s ease;
@@ -266,6 +270,7 @@
   /* Немного сдвигается вправо */
   transform: translateX(3px);
 }
+
 .entry-selected {
   /* Выделенная запись */
   /*background: #f0e1c6;*/
@@ -280,10 +285,22 @@
   /* Занимает всё оставшееся место */
 
   flex: 1;
+  /* 010826 begin */
+
+  min-width: 0;
+  /* 010826 end */
 }
 
 /* Большое поле для текста дневника */
-
+.editor-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  min-width: 130;
+}
+.editor-bar button {
+  width: 150px;
+}
 .diary-editor {
   width: 100%;
   height: 500px;
@@ -310,6 +327,10 @@
   /* Межстрочный интервал */
 
   line-height: 1.5;
+  /* 010826 begin */
+  width: 100%;
+  box-sizing: border-box;
+  /* 010826 end */
 }
 
 /* Все кнопки приложения */
@@ -406,14 +427,18 @@ button:hover {
 
 .entry-title-input {
   width: 100%;
+  height: 50px;
   margin-bottom: 15px;
-  padding: 12px;
+  padding: 0 15px;
   border: none;
   border-radius: 12px;
   background: #fffdf7;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 16px;
+  /* font-weight: bold; */
+  box-sizing: border-box;
+  color: #666;
+  font-family: inherit;
 }
 
 /* При получении фокуса */
@@ -430,6 +455,10 @@ button:hover {
 .entry-title {
   font-size: 16px;
   font-weight: bold;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #yellow;
 }
 
 .entry-delete {
@@ -460,13 +489,17 @@ button:hover {
 }
 .entry-category {
   width: 100%;
+  height: 50px;
   margin-bottom: 15px;
-  padding: 10px;
+  padding: 0 15px;
   border: none;
   border-radius: 12px;
   background: #fffdf7;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
-  font-size: 14px;
+  font-size: 16px;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: #666;
 }
 
 .entry-category:focus {
@@ -481,6 +514,8 @@ button:hover {
 
 .entry-title-input {
   flex: 1;
+  font-size: 16px;
+  fon-family: inherit;
 }
 
 .entry-category {
@@ -488,4 +523,110 @@ button:hover {
 }
 .entry-selected {
   outline: 2px solid #8b6f3d;
+}
+
+/* ========================= Панель категорий========================= */
+.category-input {
+  width: 100%;
+
+  padding: 10px;
+
+  margin-bottom: 15px;
+
+  border: none;
+
+  border-radius: 10px;
+}
+
+.color-picker-row {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 15px;
+}
+
+.category-list {
+  margin-top: 15px;
+
+  max-height: 250px;
+
+  overflow-y: auto;
+}
+
+.category-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: #fffdf7;
+  border-radius: 10px;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.category-color {
+  width: 18px;
+
+  height: 18px;
+
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.category-actions {
+  display: flex;
+
+  gap: 6px;
+}
+
+.icon-btn {
+  border: none;
+
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+}
+
+.icon-btn:hover {
+  transform: scale(1.15);
+}
+
+/* ========================= Панель поиска========================= */
+.search-input {
+  width: 100%;
+  height: 50px;
+  margin-bottom: 10px;
+
+  padding: 15px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #fffdf7;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 16px;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: #666;
+}
+
+enries-panel {
+  width: 350px;
+  min-width: 350px;
+  list-style: none;
+
+  background: #e8dcc0;
+
+  padding: 10px;
+}
+
+.logo {
+  height: 100px;
+  display: block;
+  margin: 0 auto 5px auto;
 }

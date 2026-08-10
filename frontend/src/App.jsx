@@ -13,6 +13,12 @@ function App() {
   const [deleteId, setDeleteId] = useState(null);
   const [categories, setCategories] = useState([]);
   const [categoryId, setCategoryId] = useState("");
+  const [showCategories, setShowCategories] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryColor, setNewCategoryColor] = useState("#cccccc");
+
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [searchText, setSearchText] = useState("");
   const addEntry = async () => {
     await fetch("http://localhost:5000/entries", {
       method: "POST",
@@ -181,6 +187,59 @@ function App() {
 
     loadEntries();
   };
+
+  //===ADD CATEGORY ===
+  const addCategory = async () => {
+    if (editingCategory) {
+      await fetch(
+        `http://localhost:5000/categories/${editingCategory.id}`,
+
+        {
+          method: "PUT",
+
+          headers: {
+            "Content-Type": "application/json",
+
+            Authorization: localStorage.getItem("token"),
+          },
+
+          body: JSON.stringify({
+            name: newCategoryName,
+
+            color: newCategoryColor,
+          }),
+        },
+      );
+    } else {
+      await fetch(
+        "http://localhost:5000/categories",
+
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+
+            Authorization: localStorage.getItem("token"),
+          },
+
+          body: JSON.stringify({
+            name: newCategoryName,
+
+            color: newCategoryColor,
+          }),
+        },
+      );
+    }
+
+    setEditingCategory(null);
+
+    setNewCategoryName("");
+
+    setNewCategoryColor("#cccccc");
+
+    await loadCategories();
+  };
   //=== LOAD CATEGORIES ===
   const loadCategories = async () => {
     const res = await fetch(
@@ -196,6 +255,29 @@ function App() {
     const data = await res.json();
 
     setCategories(data);
+  };
+
+  //=== DELETE CATEGORY ===
+  const deleteCategory = async (id) => {
+    const res = await fetch(
+      `http://localhost:5000/categories/${id}`,
+
+      {
+        method: "DELETE",
+
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      },
+    );
+
+    if (!res.ok) {
+      alert(await res.text());
+
+      return;
+    }
+
+    await loadCategories();
   };
 
   //=== SELECT ENTRY ===
@@ -246,13 +328,24 @@ function App() {
 
   const isLoggedIn = !!localStorage.getItem("token");
 
+  //=== FILTER ENTRIES BASED ON SEARCH TEXT ===
+
+  const filteredEntries = entries.filter((e) =>
+    ((e.title || "") + " " + (e.content || "") + " " + (e.category_name || ""))
+
+      .toLowerCase()
+
+      .includes(searchText.toLowerCase()),
+  );
+
   return (
     <div className="app">
-      <h1>Меморії</h1>
+      {/*<h1>Меморії</h1>*/}
+      {/*<img src="/m10.svg" alt="Меморії" className="logo" />  */}
+      <img src="/m7.png" alt="Меморії" className="logo" />
+
       {isLoggedIn ? (
-        <div className="auth-panel ">
-          <button onClick={logout}>Вихід</button>
-        </div>
+        <div className="auth-panel "></div>
       ) : (
         <div>
           <input
@@ -273,60 +366,72 @@ function App() {
       )}
       {isLoggedIn && (
         <>
-          <hr />
+          {/*<hr /> */}
 
           <div className="diary-layout">
             {/* Левая колонка со списком записей */}
-            <ul className="entry-list">
-              {entries.map((e) => (
-                <li
-                  key={e.id}
-                  className={
-                    selectedEntry?.id === e.id
-                      ? "entry-item entry-selected"
-                      : "entry-item"
-                  }
-                  style={{
-                    backgroundColor: e.category_color
-                      ? e.category_color + "33"
-                      : "#f7f1e3", // Add transparency to the category color
-                  }}
-                  onClick={() => selectEntry(e)}
-                >
-                  {/* Дата */}
+            <div className="entries-panel">
+              <input
+                className="search-input"
+                type="text"
+                placeholder="пошук..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
 
-                  {/*<strong>{new Date(e.created_at).toLocaleDateString()}</strong> */}
-                  <div>
-                    <span className="entry-date">
-                      {new Date(
-                        e.updated_at || e.created_at,
-                      ).toLocaleTimeString("uk-UA", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                    {" | "}
-                    <span className="entry-title">
-                      {/* Title or ервые 10 символов */}
-                      {e.title || `***${e.content.substring(0, 14)}...`}{" "}
-                    </span>
-                  </div>
-
-                  <button
-                    className="entry-delete"
-                    onClick={(event) => {
-                      event.stopPropagation();
-
-                      setDeleteId(e.id);
+              <ul className="entry-list">
+                {/* { entries.map((e) => ( */}
+                {filteredEntries.map((e) => (
+                  <li
+                    key={e.id}
+                    className={
+                      selectedEntry?.id === e.id
+                        ? "entry-item entry-selected"
+                        : "entry-item"
+                    }
+                    style={{
+                      backgroundColor: e.category_color
+                        ? e.category_color + "33"
+                        : "#f7f1e3", // Add transparency to the category color
                     }}
+                    onClick={() => selectEntry(e)}
                   >
-                    🗑
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    {/* Дата */}
+
+                    {/*<strong>{new Date(e.created_at).toLocaleDateString()}</strong> */}
+                    <div>
+                      <span className="entry-date">
+                        {new Date(
+                          e.updated_at || e.created_at,
+                        ).toLocaleTimeString("uk-UA", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      {" | "}
+                      <span className="entry-title">
+                        {(
+                          e.title || `***${e.content.substring(0, 14)}...`
+                        ).slice(0, 18)}
+                      </span>
+                    </div>
+
+                    <button
+                      className="entry-delete"
+                      onClick={(event) => {
+                        event.stopPropagation();
+
+                        setDeleteId(e.id);
+                      }}
+                    >
+                      🗑
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
             {/* Правая колонка */}
             <div className="editor">
               <div className="editor-header">
@@ -335,7 +440,7 @@ function App() {
                   className="entry-title-input"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="...назва.."
+                  placeholder="назва..."
                 />
 
                 <select
@@ -343,7 +448,7 @@ function App() {
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
                 >
-                  <option value="">Без категорії</option>
+                  <option value="">категорія...</option>
 
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -351,6 +456,15 @@ function App() {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="editor-bar">
+                {" "}
+                <button onClick={newEntry}>        Новий запис       </button>
+                <button onClick={saveEntry}>        Зберегти       </button>
+                <button onClick={() => setShowCategories(!showCategories)}>
+                  Категорії      
+                </button>
+                <button onClick={logout}>Вихід</button>
               </div>
               <textarea
                 className="diary-editor"
@@ -360,8 +474,7 @@ function App() {
               />
               <br />
               {/*<button onClick={addEntry}>        Додати       </button> */}
-              <button onClick={newEntry}>        Новий запис       </button>
-              <button onClick={saveEntry}>        Зберегти       </button>
+
               {/* <button onClick={loadEntries}>        Оновити       </button> */}
             </div>
           </div>
@@ -377,6 +490,76 @@ function App() {
             <button onClick={() => setDeleteId(null)}>Ні</button>
 
             <button onClick={confirmDelete}>Так</button>
+          </div>
+        </div>
+      )}
+      {showCategories && (
+        <div className="modal-backdrop">
+          <div className="modal-window">
+            <h3>Категорії</h3>
+
+            <input
+              className="category-input"
+              type="text"
+              placeholder="Назва категорії"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+            />
+
+            <div className="color-picker-row">
+              <span>Колір:</span>
+
+              <input
+                type="color"
+                value={newCategoryColor}
+                onChange={(e) => setNewCategoryColor(e.target.value)}
+              />
+            </div>
+
+            <button onClick={addCategory}>
+              {editingCategory ? "Зберегти" : "Створити"}
+            </button>
+
+            <button onClick={() => setShowCategories(false)}>Закрити</button>
+
+            <hr />
+
+            <div className="category-list">
+              {categories.map((c) => (
+                <div key={c.id} className="category-row">
+                  <div className="category-info">
+                    <span
+                      className="category-color"
+                      style={{
+                        backgroundColor: c.color,
+                      }}
+                    />
+
+                    <span>{c.name}</span>
+                  </div>
+
+                  <div className="category-actions">
+                    <button
+                      className="icon-btn"
+                      onClick={() => {
+                        setEditingCategory(c);
+                        setNewCategoryName(c.name);
+                        setNewCategoryColor(c.color);
+                      }}
+                    >
+                      ✏️
+                    </button>
+
+                    <button
+                      className="icon-btn"
+                      onClick={() => deleteCategory(c.id)}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
