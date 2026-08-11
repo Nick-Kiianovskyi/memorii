@@ -19,6 +19,10 @@ function App() {
 
   const [editingCategory, setEditingCategory] = useState(null);
   const [searchText, setSearchText] = useState("");
+  const [filterCategoryId, setFilterCategoryId] = useState("");
+  //=== variable to track if a new entry is being created
+  const [isNewEntry, setIsNewEntry] = useState(false);
+
   const addEntry = async () => {
     await fetch("http://localhost:5000/entries", {
       method: "POST",
@@ -155,7 +159,7 @@ function App() {
           category_id: categoryId, // Use null if no category is selected
         }),
       });
-
+      setIsNewEntry(false); // Reset the new entry flag after saving
       loadEntries();
 
       return;
@@ -184,7 +188,7 @@ function App() {
         }),
       },
     );
-
+    setIsNewEntry(false); // Reset the new entry flag after saving
     loadEntries();
   };
 
@@ -282,6 +286,7 @@ function App() {
 
   //=== SELECT ENTRY ===
   const selectEntry = (entry) => {
+    setIsNewEntry(false); // Reset the new entry flag when selecting an existing entry
     setSelectedEntry(entry);
 
     setTitle(entry.title || ""); // Assuming entry has a title property
@@ -292,7 +297,7 @@ function App() {
 
   const newEntry = () => {
     // снимаем выбор записи
-
+    setIsNewEntry(true); // Set the flag to indicate a new entry is being created
     setSelectedEntry(null);
 
     // очищаем редактор
@@ -319,30 +324,51 @@ function App() {
 
   //=== USE EFFECT ===
   useEffect(() => {
+    // Load entries and categories when the component mounts
     //=== loadEntries();
     if (localStorage.getItem("token")) {
-      loadEntries();
-      loadCategories();
+      loadEntries(); // Load entries only if the user is logged in
+      loadCategories(); // Load categories only if the user is logged in
     }
   }, []);
 
-  const isLoggedIn = !!localStorage.getItem("token");
+  const isLoggedIn = !!localStorage.getItem("token"); // Check if the user is logged in based on the presence of a token
 
   //=== FILTER ENTRIES BASED ON SEARCH TEXT ===
-
+  {
+    /*
   const filteredEntries = entries.filter((e) =>
     ((e.title || "") + " " + (e.content || "") + " " + (e.category_name || ""))
 
       .toLowerCase()
 
       .includes(searchText.toLowerCase()),
-  );
+  ); */
+  }
+  const filteredEntries = entries.filter((e) => {
+    const matchesSearch = (
+      (e.title || "") +
+      " " +
+      (e.content || "") +
+      " " +
+      (e.category_name || "")
+    )
+
+      .toLowerCase()
+
+      .includes(searchText.toLowerCase());
+
+    const matchesCategory =
+      !filterCategoryId || String(e.category_id) === filterCategoryId;
+
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="app">
       {/*<h1>Меморії</h1>*/}
       {/*<img src="/m10.svg" alt="Меморії" className="logo" />  */}
-      <img src="/m7.png" alt="Меморії" className="logo" />
+      <img src="/m91.png" alt="Меморії" className="logo" />
 
       {isLoggedIn ? (
         <div className="auth-panel "></div>
@@ -368,17 +394,46 @@ function App() {
         <>
           {/*<hr /> */}
 
+          <div className="editor-bar">
+            {" "}
+            <button onClick={newEntry}>        Новий запис       </button>
+            <button onClick={saveEntry}>        Зберегти       </button>
+            <button onClick={() => setShowCategories(!showCategories)}>
+              Категорії      
+            </button>
+            <button onClick={logout}>Вихід</button>
+          </div>
+
           <div className="diary-layout">
             {/* Левая колонка со списком записей */}
             <div className="entries-panel">
-              <input
-                className="search-input"
-                type="text"
-                placeholder="пошук..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-              />
+              <div className="search-row">
+                <select
+                  className="filter-category"
+                  value={filterCategoryId}
+                  onChange={(e) => {
+                    console.log("Selected category ID:", e.target.value);
+                    //setCategoryId(e.target.value)
 
+                    setFilterCategoryId(e.target.value);
+                  }}
+                >
+                  <option value="">усі категорії</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  className="search-input"
+                  type="text"
+                  placeholder="пошук..."
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                />
+              </div>
               <ul className="entry-list">
                 {/* { entries.map((e) => ( */}
                 {filteredEntries.map((e) => (
@@ -434,7 +489,10 @@ function App() {
             </div>
             {/* Правая колонка */}
             <div className="editor">
-              <div className="editor-header">
+              <div
+                className="editor-header"
+                style={{ visibility: isNewEntry ? "visible" : "hidden" }}
+              >
                 <input
                   type="text"
                   className="entry-title-input"
@@ -457,15 +515,7 @@ function App() {
                   ))}
                 </select>
               </div>
-              <div className="editor-bar">
-                {" "}
-                <button onClick={newEntry}>        Новий запис       </button>
-                <button onClick={saveEntry}>        Зберегти       </button>
-                <button onClick={() => setShowCategories(!showCategories)}>
-                  Категорії      
-                </button>
-                <button onClick={logout}>Вихід</button>
-              </div>
+
               <textarea
                 className="diary-editor"
                 value={text}
