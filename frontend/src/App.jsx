@@ -375,8 +375,8 @@ function App() {
       {/*<img src="/m10.svg" alt="Меморії" className="logo" />  */}
       <img src="/m91.png" alt="Меморії" className="logo" />
       <h2 className="auth-title">особистий щоденник</h2>
-      {isLoggedIn ? (
-        <div className="auth-panel "></div>
+      {/*{isLoggedIn ? (
+        <div className="auth-panel "></div> 
       ) : (
         <div className="auth-panel">
           <input
@@ -393,6 +393,27 @@ function App() {
           />
           <button onClick={register}>Реєстрація</button>
           <button onClick={login}>Вхід</button> {" "}
+        </div>
+      )} */}
+      {!isLoggedIn && (
+        <div className="auth-panel">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <input
+            type="password"
+            placeholder="Пароль"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <button onClick={register}>Реєстрація</button>
+
+          <button onClick={login}>Вхід</button>
         </div>
       )}
       {isLoggedIn && (
