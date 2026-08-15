@@ -365,7 +365,7 @@ button:hover {
 .entry-title-input {
   flex: 1;
   font-size: 16px;
-  fon-family: inherit;
+  font-family: inherit;
 }
 
 .entry-category {
@@ -505,4 +505,40 @@ entries-panel {
   height: 100px;
   display: block;
   margin: 0 auto 5px auto;
+}
+
+/*================== MOBILE ==================*/
+@media (max-width: 768px) {
+  .entry-list {
+    height: auto;
+  }
+  .diary-layout {
+    flex-direction: column;
+  }
+
+  .entries-panel {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .editor {
+    width: 100%;
+  }
+
+  .edtor-header {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .entry-category {
+    width: 100%;
+  }
+  .logo {
+    width: 280px;
+    height: auto;
+  }
+  .auth-panel {
+    width: 90%;
+    padding: 20px;
+  }
 }
