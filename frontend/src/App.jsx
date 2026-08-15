@@ -1,6 +1,10 @@
 import "./App.css";
 import { useState, useEffect } from "react";
 
+const API_URL = import.meta.env.DEV
+  ? "http://localhost:5000"
+  : "https://memorii.onrender.com";
+
 function App() {
   //=== const [text, setText] = useState("");
   const [selectedEntry, setSelectedEntry] = useState(null);
@@ -24,7 +28,8 @@ function App() {
   const [isNewEntry, setIsNewEntry] = useState(false);
 
   const addEntry = async () => {
-    await fetch("http://localhost:5000/entries", {
+    // ==await fetch("http://localhost:5000/entries", {
+    await fetch(`${API_URL}/entries`, {
       method: "POST",
 
       headers: {
@@ -41,7 +46,7 @@ function App() {
   };
 
   const loadEntries = async () => {
-    const res = await fetch("http://localhost:5000/entries", {
+    const res = await fetch(`${API_URL}/entries`, {
       headers: {
         Authorization: localStorage.getItem("token"),
       },
@@ -56,7 +61,7 @@ function App() {
 
   const register = async () => {
     const res = await fetch(
-      "http://localhost:5000/register",
+      `${API_URL}/register`,
 
       {
         method: "POST",
@@ -80,7 +85,7 @@ function App() {
   const login = async () => {
     console.log("LOGIN CLICKED");
     const res = await fetch(
-      "http://localhost:5000/login",
+      `${API_URL}/login`,
 
       {
         method: "POST",
@@ -118,7 +123,7 @@ function App() {
     if (!deleteId) return;
 
     const res = await fetch(
-      `http://localhost:5000/entries/${deleteId}`,
+      `${API_URL}/entries/${deleteId}`,
 
       {
         method: "DELETE",
@@ -144,7 +149,7 @@ function App() {
     // создаём новую
 
     if (!selectedEntry) {
-      await fetch("http://localhost:5000/entries", {
+      await fetch(`${API_URL}/entries`, {
         method: "POST",
 
         headers: {
@@ -170,7 +175,7 @@ function App() {
     // обновляем её
 
     await fetch(
-      `http://localhost:5000/entries/${selectedEntry.id}`,
+      `${API_URL}/entries/${selectedEntry.id}`,
 
       {
         method: "PUT",
@@ -196,7 +201,7 @@ function App() {
   const addCategory = async () => {
     if (editingCategory) {
       await fetch(
-        `http://localhost:5000/categories/${editingCategory.id}`,
+        `${API_URL}/categories/${editingCategory.id}`,
 
         {
           method: "PUT",
@@ -216,7 +221,7 @@ function App() {
       );
     } else {
       await fetch(
-        "http://localhost:5000/categories",
+        `${API_URL}/categories`,
 
         {
           method: "POST",
@@ -247,7 +252,7 @@ function App() {
   //=== LOAD CATEGORIES ===
   const loadCategories = async () => {
     const res = await fetch(
-      "http://localhost:5000/categories",
+      `${API_URL}/categories`,
 
       {
         headers: {
@@ -264,7 +269,7 @@ function App() {
   //=== DELETE CATEGORY ===
   const deleteCategory = async (id) => {
     const res = await fetch(
-      `http://localhost:5000/categories/${id}`,
+      `${API_URL}/categories/${id}`,
 
       {
         method: "DELETE",
@@ -310,7 +315,7 @@ function App() {
   const updateEntry = async () => {
     if (!selectedEntry) return;
 
-    await fetch(`http://localhost:5000/entries/${selectedEntry.id}`, {
+    await fetch(`${API_URL}/entries/${selectedEntry.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -369,11 +374,11 @@ function App() {
       {/*<h1>Меморії</h1>*/}
       {/*<img src="/m10.svg" alt="Меморії" className="logo" />  */}
       <img src="/m91.png" alt="Меморії" className="logo" />
-
+      <h2 className="auth-title">особистий щоденник</h2>
       {isLoggedIn ? (
         <div className="auth-panel "></div>
       ) : (
-        <div>
+        <div className="auth-panel">
           <input
             type="email"
             placeholder="Email"

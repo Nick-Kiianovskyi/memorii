@@ -199,25 +199,52 @@ button:hover {
 .auth-panel {
   /* Отступ снизу */
 
-  margin-bottom: 20px;
+  /* margin-bottom: 20px;*/
+  width: 450px;
+
+  margin: 30px auto;
+
+  padding: 30px;
+
+  background: transparent;
+
+  border-radius: 16px;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 /* Поля Email и Пароль */
 
 .auth-panel input {
-  /* Отступ справа между полями */
-
-  margin-right: 10px;
-
-  /* Внутренний отступ */
-
+  /* margin-right: 10px;
   padding: 8px;
-  /* Скругление */
-
   border-radius: 6px;
-  /* Тонкая серая рамка */
+  border: 1px solid #ccc;*/
+  width: 100%;
 
-  border: 1px solid #ccc;
+  height: 50px;
+
+  margin-bottom: 15px;
+
+  padding: 0 15px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #fffdf7;
+
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+
+  box-sizing: border-box;
+}
+
+.auth-title {
+  text-align: center;
+  font-size: 16px;
+  font-style: italic;
+  color: #8b6f3d;
+  font-weight: normal;
 }
 
 .modal-backdrop {
@@ -244,7 +271,9 @@ button:hover {
 /* Поле названия записи */
 
 .entry-title-input {
-  width: 100%;
+  /* width: 100%;*/
+  flex: 1;
+  min-width: 0;
   height: 50px;
   margin-bottom: 15px;
   padding: 0 15px;
@@ -305,7 +334,10 @@ button:hover {
   cursor: pointer;
 }
 .entry-category {
-  width: 100%;
+  /* width: 100%;*/
+  width: 180px;
+  flex-shrink: 0; /* Чтобы не сжималось при маленькой ширине */
+
   height: 50px;
   margin-bottom: 15px;
   padding: 0 15px;
@@ -326,7 +358,8 @@ button:hover {
 .editor-header {
   display: flex;
   gap: 10px;
-  margin-bottom: 15px;
+  /* margin-bottom: 15px; */
+  width: 100%;
 }
 
 .entry-title-input {
@@ -455,6 +488,7 @@ button:hover {
   box-sizing: border-box;
   font-family: inherit;
   color: #666;
+  min-width: 0;
 }
 
 entries-panel {
