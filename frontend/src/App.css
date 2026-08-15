@@ -117,6 +117,7 @@ body {
 }
 .editor-bar button {
   width: 150px;
+  margin: 0;
 }
 .diary-editor {
   width: 100%;
@@ -520,14 +521,23 @@ entries-panel {
     width: 100%;
     min-width: 0;
   }
+  .entry-list {
+    height: 170px;
+    overflow-y: auto;
+  }
 
   .editor {
     width: 100%;
   }
 
-  .edtor-header {
+  .editor-header {
+    display: flex;
     flex-direction: column;
     gap: 5px;
+  }
+  .entry-title-input {
+    width: 100%;
+    flex: none;
   }
 
   .entry-category {
