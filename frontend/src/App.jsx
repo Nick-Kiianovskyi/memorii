@@ -403,7 +403,7 @@ function App() {
 
           <div className="editor-bar">
             {" "}
-            <button onClick={newEntry}>        Новий запис       </button>
+            <button onClick={newEntry}>        Створити       </button>
             <button onClick={saveEntry}>        Зберегти       </button>
             <button onClick={() => setShowCategories(!showCategories)}>
               Категорії      
