@@ -26,6 +26,8 @@ function App() {
   const [filterCategoryId, setFilterCategoryId] = useState("");
   //=== variable to track if a new entry is being created
   const [isNewEntry, setIsNewEntry] = useState(false);
+  const [showList, setShowList] = useState(true);
+  const isMobile = window.innerWidth <= 768; /*for mobile state*/
 
   const addEntry = async () => {
     // ==await fetch("http://localhost:5000/entries", {
@@ -161,10 +163,15 @@ function App() {
         body: JSON.stringify({
           title,
           content: text,
-          category_id: categoryId, // Use null if no category is selected
+          category_id: categoryId || DEFAULT_CATEGORY_ID, // Use null if no category is selected
         }),
       });
       setIsNewEntry(false); // Reset the new entry flag after saving
+      console.log("isMobile =", isMobile);
+      if (isMobile) {
+        console.log("SHOW LIST");
+        setShowList(true);
+      }
       loadEntries();
 
       return;
@@ -173,6 +180,7 @@ function App() {
     // Если запись выбрана
 
     // обновляем её
+    console.log("SAVE", { title, text, categoryId, selectedEntry });
 
     await fetch(
       `${API_URL}/entries/${selectedEntry.id}`,
@@ -189,12 +197,18 @@ function App() {
         body: JSON.stringify({
           title,
           content: text,
-          category_id: categoryId,
+          category_id: categoryId || DEFAULT_CATEGORY_ID,
         }),
       },
     );
     setIsNewEntry(false); // Reset the new entry flag after saving
     loadEntries();
+
+    // for mobile view
+    if (isMobile) {
+      console.log("SHOW LIST");
+      setShowList(true);
+    }
   };
 
   //===ADD CATEGORY ===
@@ -296,10 +310,15 @@ function App() {
 
     setTitle(entry.title || ""); // Assuming entry has a title property
     setText(entry.content);
-    setCategoryId(entry.category_id || ""); // Assuming entry has a category_id property
+    setCategoryId(entry.category_id || DEFAULT_CATEGORY_ID); // Assuming entry has a category_id property
+
+    // for nobile hide
+    if (isMobile) {
+      setShowList(false);
+    }
   };
   // === NEW ENTRY ===
-
+  const DEFAULT_CATEGORY_ID = 1;
   const newEntry = () => {
     // снимаем выбор записи
     setIsNewEntry(true); // Set the flag to indicate a new entry is being created
@@ -309,6 +328,11 @@ function App() {
     setTitle(""); // Clear title for new entry
     setText("");
     setCategoryId(""); // Clear category selection for new entry
+    setCategoryId(DEFAULT_CATEGORY_ID);
+    // for mobile hide
+    if (isMobile) {
+      setShowList(false);
+    }
   };
 
   //=== UPDATE ENTRY ===
@@ -321,7 +345,11 @@ function App() {
         "Content-Type": "application/json",
         Authorization: localStorage.getItem("token"),
       },
-      body: JSON.stringify({ title, content: text, category_id: categoryId }),
+      body: JSON.stringify({
+        title,
+        content: text,
+        category_id: categoryId,
+      }),
     });
 
     loadEntries();
@@ -400,7 +428,7 @@ function App() {
       {isLoggedIn && (
         <>
           {/*<hr /> */}
-
+          {/*
           <div className="editor-bar">
             {" "}
             <button onClick={newEntry}>        Створити       </button>
@@ -410,95 +438,99 @@ function App() {
             </button>
             <button onClick={logout}>Вихід</button>
           </div>
-
+*/}
           <div className="diary-layout">
             {/* Левая колонка со списком записей */}
-            <div className="entries-panel">
-              <div className="search-row">
-                <select
-                  className="filter-category"
-                  value={filterCategoryId}
-                  onChange={(e) => {
-                    console.log("Selected category ID:", e.target.value);
-                    //setCategoryId(e.target.value)
+            {(!isMobile || showList) && (
+              <div className="entries-panel">
+                <div className="search-row">
+                  <select
+                    className="filter-category"
+                    value={filterCategoryId}
+                    onChange={(e) => {
+                      console.log("Selected category ID:", e.target.value);
+                      //setCategoryId(e.target.value)
 
-                    setFilterCategoryId(e.target.value);
-                  }}
-                >
-                  <option value="">усі категорії</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-
-                <input
-                  className="search-input"
-                  type="text"
-                  placeholder="пошук..."
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                />
-              </div>
-              <ul className="entry-list">
-                {/* { entries.map((e) => ( */}
-                {filteredEntries.map((e) => (
-                  <li
-                    key={e.id}
-                    className={
-                      selectedEntry?.id === e.id
-                        ? "entry-item entry-selected"
-                        : "entry-item"
-                    }
-                    style={{
-                      backgroundColor: e.category_color
-                        ? e.category_color + "33"
-                        : "#f7f1e3", // Add transparency to the category color
+                      setFilterCategoryId(e.target.value);
                     }}
-                    onClick={() => selectEntry(e)}
                   >
-                    {/* Дата */}
+                    <option value="">усі категорії</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
 
-                    {/*<strong>{new Date(e.created_at).toLocaleDateString()}</strong> */}
-                    <div>
-                      <span className="entry-date">
-                        {new Date(
-                          e.updated_at || e.created_at,
-                        ).toLocaleTimeString("uk-UA", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                      {" | "}
-                      <span className="entry-title">
-                        {(
-                          e.title || `***${e.content.substring(0, 14)}...`
-                        ).slice(0, 18)}
-                      </span>
-                    </div>
-
-                    <button
-                      className="entry-delete"
-                      onClick={(event) => {
-                        event.stopPropagation();
-
-                        setDeleteId(e.id);
+                  <input
+                    className="search-input"
+                    type="text"
+                    placeholder="пошук..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                  />
+                </div>
+                <ul className="entry-list">
+                  {/* { entries.map((e) => ( */}
+                  {filteredEntries.map((e) => (
+                    <li
+                      key={e.id}
+                      className={
+                        selectedEntry?.id === e.id
+                          ? "entry-item entry-selected"
+                          : "entry-item"
+                      }
+                      style={{
+                        backgroundColor: e.category_color
+                          ? e.category_color + "33"
+                          : "#f7f1e3", // Add transparency to the category color
                       }}
+                      onClick={() => selectEntry(e)}
                     >
-                      🗑
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                      {/* Дата */}
+
+                      {/*<strong>{new Date(e.created_at).toLocaleDateString()}</strong> */}
+                      <div>
+                        <span className="entry-date">
+                          {new Date(
+                            e.updated_at || e.created_at,
+                          ).toLocaleTimeString("uk-UA", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        {" | "}
+                        <span className="entry-title">
+                          {(
+                            e.title || `***${e.content.substring(0, 14)}...`
+                          ).slice(0, 18)}
+                        </span>
+                      </div>
+
+                      <button
+                        className="entry-delete"
+                        onClick={(event) => {
+                          event.stopPropagation();
+
+                          setDeleteId(e.id);
+                        }}
+                      >
+                        🗑
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Правая колонка */}
             <div className="editor">
               <div
                 className="editor-header"
-                style={{ visibility: isNewEntry ? "visible" : "hidden" }}
+                /*style={{ visibility: isNewEntry ? "visible" : "hidden" }}*/
+                style={{ display: isNewEntry ? "block" : "none" }}
               >
                 <input
                   type="text"
@@ -535,6 +567,44 @@ function App() {
               {/* <button onClick={loadEntries}>        Оновити       </button> */}
             </div>
           </div>
+        </>
+      )}
+      <button className="floating-exit-btn" onClick={logout} title="Вийти">
+        🚪
+      </button>
+      <button
+        className="floating-cat-btn"
+        onClick={() => setShowCategories(!showCategories)}
+        title="Категорії"
+      >
+        🎨
+      </button>
+      <button
+        className="floating-new-btn"
+        onClick={newEntry}
+        title="Новий запис"
+      >
+        ➕
+      </button>
+
+      {(selectedEntry || isNewEntry) && (
+        <>
+          <button
+            className="floating-back-btn"
+            onClick={() => {
+              setShowList(true);
+
+              setIsNewEntry(false);
+              setTitle("");
+              setText("");
+              setSelectedEntry(null);
+            }}
+          >
+            ⇦
+          </button>
+          <button className="floating-save-btn" onClick={saveEntry}>
+            💾
+          </button>
         </>
       )}
       {deleteId && (

@@ -45,8 +45,6 @@ body {
 .entry-list {
   list-style: none;
 
-  /* Более тёмный песочный цвет */
-
   background: #e8dcc0;
   /* Внутренние отступы */
 
@@ -56,6 +54,8 @@ body {
   border-radius: 12px;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
   height: calc(100vh - 150px);
+  /* max-height: calc(100vh-230px);*/
+
   overflow-y: auto;
 }
 
@@ -358,19 +358,22 @@ button:hover {
 }
 .editor-header {
   display: flex;
-  gap: 10px;
+
   /* margin-bottom: 15px; */
-  width: 100%;
+  /*width: 100%;*/
 }
 
 .entry-title-input {
-  flex: 1;
+  /*flex: 1;
   font-size: 16px;
-  font-family: inherit;
+  font-family: inherit;*/
+  width: 80%;
 }
 
 .entry-category {
+  /*width: 180px;*/
   width: 180px;
+  flex-shrink: 0;
 }
 .entry-selected {
   outline: 2px solid #8b6f3d;
@@ -515,6 +518,7 @@ entries-panel {
   }
   .diary-layout {
     flex-direction: column;
+    gap: 0;
   }
 
   .entries-panel {
@@ -550,5 +554,131 @@ entries-panel {
   .auth-panel {
     width: 90%;
     padding: 20px;
+  }
+}
+/*
+.floating-save-btn {
+  display: none;
+}*/
+/*
+.floating-new-btn {
+  display: none;
+} */
+.floating-exit-btn {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  width: 48px;
+  height: 48px;
+
+  font-size: 16px;
+  border: none;
+  border-radius: 50px;
+  background-color: #b68d40;
+  color: white;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  z-index: 1000;
+}
+.floating-cat-btn {
+  position: fixed;
+  top: 63px;
+  right: 15px;
+  width: 48px;
+  height: 48px;
+
+  font-size: 16px;
+  border: none;
+  border-radius: 50px;
+  background-color: #b68d40;
+  color: white;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  z-index: 1000;
+}
+.floating-new-btn {
+  position: fixed;
+  bottom: 141px;
+  right: 15px;
+  width: 48px;
+  height: 48px;
+
+  font-size: 16px;
+  border: none;
+  border-radius: 50px;
+  background-color: #b68d40;
+  color: white;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  z-index: 1000;
+}
+.floating-back-btn {
+  position: fixed;
+  bottom: 78px;
+  right: 15px;
+  width: 48px;
+  height: 48px;
+
+  font-size: 16px;
+  border: none;
+  border-radius: 50px;
+  background-color: #b68d40;
+  color: white;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.floating-save-btn {
+  display: block;
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  width: 48px;
+  height: 48px;
+
+  font-size: 16px;
+  border: none;
+  border-radius: 50px;
+  background-color: #b68d40;
+  color: white;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  z-index: 1000; /* Ensure it appears above other elements */
+}
+
+@media (max-width: 768px) {
+  .floating-save-btn {
+    display: block;
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    width: 48px;
+    height: 48px;
+
+    font-size: 16px;
+    border: none;
+    border-radius: 50px;
+    background-color: #b68d40;
+    color: white;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 1000; /* Ensure it appears above other elements */
+  }
+  .floating-new-btn {
+    position: fixed;
+    bottom: 78px;
+    right: 15px;
+    width: 48px;
+    height: 48px;
+
+    font-size: 16px;
+    border: none;
+    border-radius: 50px;
+    background-color: #b68d40;
+    color: white;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 1000;
   }
 }
