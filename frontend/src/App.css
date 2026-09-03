@@ -378,7 +378,43 @@ button:hover {
 .entry-selected {
   outline: 2px solid #8b6f3d;
 }
+/* === for image-screens == */
+.images-container {
+  display: flex;
 
+  flex-direction: row; /* ставимо ряд */
+  flex-wrap: wrap; /* дозволяємо перенос на новий ряд */
+  gap: 12px;
+  margin-top: 12px;
+}
+.entry-image {
+  /*max-width: 100%;*/
+  width: 200px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  display: block;
+}
+.image-wrapper {
+  position: relative;
+
+  display: inline-block;
+
+  margin: 5px;
+}
+
+.image-delete {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  background: rgba(255, 0, 0, 0.8);
+  color: white;
+}
 /* ========================= Панель категорий========================= */
 .category-input {
   width: 100%;
@@ -612,9 +648,25 @@ entries-panel {
   cursor: pointer;
   z-index: 1000;
 }
-.floating-back-btn {
+.floating-image-btn {
   position: fixed;
   bottom: 78px;
+  right: 15px;
+  width: 48px;
+  height: 48px;
+
+  font-size: 16px;
+  border: none;
+  border-radius: 50px;
+  background-color: #b68d40;
+  color: white;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  z-index: 1000;
+}
+.floating-back-btn {
+  position: fixed;
+  bottom: 140px;
   right: 15px;
   width: 48px;
   height: 48px;

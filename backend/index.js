@@ -1,59 +1,225 @@
-const express = require("express");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const cors = require("cors");
+const express = require('express');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
-const pool = require("./db");
+const pool = require('./db');
+
+console.log(process.env.CLOUDINARY_CLOUD_NAME);
+
+const multer = require('multer');
+
+const cloudinary = require('./cloudinary');
+
+/* create object for download */
+const upload = multer({
+  storage: multer.memoryStorage(),
+});
 
 app.use(cors());
 
 app.use(express.json());
+
+// == UPLOAD ===
+app.post('/upload', upload.single('image'), async (req, res) => {
+  console.log('UPLOAD REQUEST');
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        error: 'No file uploaded',
+      });
+    }
+
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+
+        .upload_stream(
+          {
+            folder: 'memorii',
+          },
+
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        )
+
+        .end(req.file.buffer);
+    });
+
+    res.json({
+      url: result.secure_url,
+    });
+  } catch (err) {
+    console.error('UPLOAD ERROR:', err);
+
+    res.status(500).json({
+      error: 'Upload failed',
+    });
+  }
+});
+
+// === INSERT IMAGE ====
+
+/*app.post('/entry-images', auth, async (req, res) => {
+  const { entry_id, image_url } = req.body;
+
+  try {
+    await pool.query(
+      ` 
+
+ INSERT INTO entry_images 
+
+ ( 
+
+ entry_id, 
+
+ image_url 
+
+ ) 
+
+ VALUES 
+
+ ( 
+
+ $1, 
+
+ $2 
+
+ ) 
+
+ `,
+
+      [entry_id, image_url]
+    );
+
+
+    res.json({ id: result.rows[0].id, entry_id, image_url });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).send('ERROR');
+  }
+});
+*/
+// === INSERT IMAGE ====
+app.post('/entry-images', auth, async (req, res) => {
+  const { entry_id, image_url } = req.body;
+
+  try {
+    const result = await pool.query(
+      `
+      INSERT INTO entry_images (entry_id, image_url)
+      VALUES ($1, $2)
+      RETURNING id
+      `,
+      [entry_id, image_url]
+    );
+
+    res.json({ id: result.rows[0].id, entry_id, image_url });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'ERROR' });
+  }
+});
+
+// === SELECT SCREENS
+app.get('/entry-images/:entryId', auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      ` 
+
+ SELECT * 
+
+ FROM entry_images 
+
+ WHERE entry_id = $1 
+
+ ORDER BY id 
+
+ `,
+
+      [req.params.entryId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).send('ERROR');
+  }
+});
+
+//=== DELETE SCREENS ===
+app.delete('/entry-images/:id', auth, async (req, res) => {
+  try {
+    await pool.query(
+      ` 
+
+DELETE FROM entry_images 
+
+WHERE id = $1 
+
+`,
+
+      [req.params.id]
+    );
+
+    res.send('OK');
+  } catch (err) {
+    console.error('ERROR DELETE IMAGE:', err);
+
+    res.status(500).send('ERROR');
+  }
+});
+
 // ===== AUTH MIDDLEWARE =====
 
 function auth(req, res, next) {
   const token = req.headers.authorization;
 
   if (!token) {
-    return res.status(401).send("No token");
+    return res.status(401).send('No token');
   }
 
   try {
     const decoded = jwt.verify(
       token,
 
-      "my-secret-key",
+      'my-secret-key'
     );
 
     req.user = decoded;
 
     next();
   } catch (err) {
-    return res.status(401).send("Invalid token");
+    return res.status(401).send('Invalid token');
   }
 }
-app.get("/", (req, res) => {
-  res.send("API INPROCESS. Take your seats and enjoy the ride!");
+app.get('/', (req, res) => {
+  res.send('API INPROCESS. Take your seats and enjoy the ride!');
 });
 
 // ====REGISTER====
-app.post("/register", async (req, res) => {
+app.post('/register', async (req, res) => {
   const { email, password } = req.body;
   try {
     const hash = await bcrypt.hash(password, 10);
-    await pool.query("INSERT INTO users (email, password) VALUES ($1, $2)", [
+    await pool.query('INSERT INTO users (email, password) VALUES ($1, $2)', [
       email,
       hash,
     ]);
-    res.send("User registered successfully");
+    res.send('User registered successfully');
   } catch (err) {
-    console.error("ERROR REGISTER:", err);
-    res.status(500).send("Error registering user");
+    console.error('ERROR REGISTER:', err);
+    res.status(500).send('Error registering user');
   }
 });
 //=== CATEGORIES ===
-console.log("Categories route loaded");
-app.get("/categories", auth, async (req, res) => {
+console.log('Categories route loaded');
+app.get('/categories', auth, async (req, res) => {
   try {
     const result = await pool.query(
       ` 
@@ -68,36 +234,36 @@ app.get("/categories", auth, async (req, res) => {
 
  `,
 
-      [req.user.id],
+      [req.user.id]
     );
 
     res.json(result.rows);
   } catch (err) {
     console.error(err);
 
-    res.status(500).send("Помилка завантаження категорій");
+    res.status(500).send('Помилка завантаження категорій');
   }
 });
 
 //  ====ENTRIES====
 
-app.post("/entries", auth, async (req, res) => {
+app.post('/entries', auth, async (req, res) => {
   const { title, content, category_id } = req.body;
   try {
-    await pool.query(
-      "INSERT INTO entries (user_id, title, content, category_id, created_at, updated_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-      [req.user.id, title, content, category_id],
+    const result = await pool.query(
+      'INSERT INTO entries (user_id, title, content, category_id, created_at, updated_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id',
+      [req.user.id, title, content, category_id]
     );
-
-    res.send("OK");
+    res.json({ id: result.rows[0].id });
+    // res.send('OK');
   } catch (err) {
-    console.error("ERROR POST:", err);
-    res.status(500).send("Ошибка");
+    console.error('ERROR POST:', err);
+    res.status(500).send('Ошибка');
   }
 });
 
 //app.get("/entries", async (req, res) => {
-app.get("/entries", auth, async (req, res) => {
+app.get('/entries', auth, async (req, res) => {
   try {
     //const result = await pool.query(
     //"SELECT * FROM entries WHERE user_id = $1 ORDER BY COALESCE(updated_at, created_at) DESC",
@@ -124,28 +290,28 @@ app.get("/entries", auth, async (req, res) => {
 
  `,
 
-      [req.user.id],
+      [req.user.id]
     );
 
     res.json(result.rows);
   } catch (err) {
-    console.error("ERROR GET:", err);
-    res.status(500).send("Ошибка");
+    console.error('ERROR GET:', err);
+    res.status(500).send('Ошибка');
   }
 });
 //====LOGIN====//
-app.post("/login", async (req, res) => {
+app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const result = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
+      'SELECT * FROM users WHERE email = $1',
 
-      [email],
+      [email]
     );
 
     if (result.rows.length === 0) {
-      return res.status(400).send("Пользователь не найден");
+      return res.status(400).send('Пользователь не найден');
     }
 
     const user = result.rows[0];
@@ -153,46 +319,46 @@ app.post("/login", async (req, res) => {
     const valid = await bcrypt.compare(
       password,
 
-      user.password,
+      user.password
     );
 
     if (!valid) {
-      return res.status(400).send("Неверный пароль");
+      return res.status(400).send('Неверный пароль');
     }
 
     const token = jwt.sign(
       { id: user.id },
 
-      "my-secret-key",
+      'my-secret-key'
     );
 
     res.json({ token });
   } catch (err) {
-    console.error("ERROR LOGIN:", err);
+    console.error('ERROR LOGIN:', err);
 
-    res.status(500).send("Ошибка логина");
+    res.status(500).send('Ошибка логина');
   }
 });
 
-app.delete("/entries/:id", auth, async (req, res) => {
+app.delete('/entries/:id', auth, async (req, res) => {
   try {
     await pool.query(
-      "DELETE FROM entries WHERE id = $1 AND user_id = $2",
+      'DELETE FROM entries WHERE id = $1 AND user_id = $2',
 
-      [req.params.id, req.user.id],
+      [req.params.id, req.user.id]
     );
 
-    res.send("Deleted");
+    res.send('Deleted');
   } catch (err) {
-    console.error("ERROR DELETE:", err);
+    console.error('ERROR DELETE:', err);
 
-    res.status(500).send("Ошибка удаления");
+    res.status(500).send('Ошибка удаления');
   }
 });
 
 //=== UPDATE ENTRY ===
 
-app.put("/entries/:id", auth, async (req, res) => {
+app.put('/entries/:id', auth, async (req, res) => {
   const { title, content, category_id } = req.body;
 
   try {
@@ -214,18 +380,18 @@ app.put("/entries/:id", auth, async (req, res) => {
 
  `,
 
-      [title, content, category_id, req.params.id, req.user.id],
+      [title, content, category_id, req.params.id, req.user.id]
     );
 
-    res.send("Updated");
+    res.send('Updated');
   } catch (err) {
-    console.error("ERROR UPDATE:", err);
+    console.error('ERROR UPDATE:', err);
 
-    res.status(500).send("Помилка оновлення");
+    res.status(500).send('Помилка оновлення');
   }
 });
 //=== CATEGORIES ===
-app.post("/categories", auth, async (req, res) => {
+app.post('/categories', auth, async (req, res) => {
   const { name, color } = req.body;
 
   try {
@@ -258,18 +424,18 @@ app.post("/categories", auth, async (req, res) => {
 
  `,
 
-      [req.user.id, name, color],
+      [req.user.id, name, color]
     );
 
-    res.send("OK");
+    res.send('OK');
   } catch (err) {
     console.error(err);
 
-    res.status(500).send("ERROR");
+    res.status(500).send('ERROR');
   }
 });
 //=== DELETE CATEGORY ===
-app.delete("/categories/:id", auth, async (req, res) => {
+app.delete('/categories/:id', auth, async (req, res) => {
   try {
     const used = await pool.query(
       ` 
@@ -282,11 +448,11 @@ app.delete("/categories/:id", auth, async (req, res) => {
 
  `,
 
-      [req.params.id],
+      [req.params.id]
     );
 
     if (Number(used.rows[0].cnt) > 0) {
-      return res.status(400).send("Категорія використовується в записах");
+      return res.status(400).send('Категорія використовується в записах');
     }
 
     await pool.query(
@@ -300,18 +466,18 @@ app.delete("/categories/:id", auth, async (req, res) => {
 
  `,
 
-      [req.params.id, req.user.id],
+      [req.params.id, req.user.id]
     );
 
-    res.send("Deleted");
+    res.send('Deleted');
   } catch (err) {
     console.error(err);
 
-    res.status(500).send("Error");
+    res.status(500).send('Error');
   }
 });
 //=== UPDATE CATEGORY ===
-app.put("/categories/:id", auth, async (req, res) => {
+app.put('/categories/:id', auth, async (req, res) => {
   const { name, color } = req.body;
 
   try {
@@ -332,14 +498,14 @@ app.put("/categories/:id", auth, async (req, res) => {
 
  `,
 
-      [name, color, req.params.id, req.user.id],
+      [name, color, req.params.id, req.user.id]
     );
 
-    res.send("Updated");
+    res.send('Updated');
   } catch (err) {
     console.error(err);
 
-    res.status(500).send("Error");
+    res.status(500).send('Error');
   }
 });
 

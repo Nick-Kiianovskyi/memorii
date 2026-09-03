@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const API_URL = import.meta.env.DEV
   ? "http://localhost:5000"
@@ -28,6 +28,9 @@ function App() {
   const [isNewEntry, setIsNewEntry] = useState(false);
   const [showList, setShowList] = useState(true);
   const isMobile = window.innerWidth <= 768; /*for mobile state*/
+  const [imageUrl, setImageUrl] = useState("");
+  const [images, setImages] = useState([]);
+  const fileInputRef = useRef(null);
 
   const addEntry = async () => {
     // ==await fetch("http://localhost:5000/entries", {
@@ -146,12 +149,13 @@ function App() {
   //=== SAVE ENTRY ===
 
   const saveEntry = async () => {
+    console.log("SAVE IMAGES:", images);
     // Если запись НЕ выбрана
 
     // создаём новую
 
     if (!selectedEntry) {
-      await fetch(`${API_URL}/entries`, {
+      const res = await fetch(`${API_URL}/entries`, {
         method: "POST",
 
         headers: {
@@ -166,12 +170,42 @@ function App() {
           category_id: categoryId || DEFAULT_CATEGORY_ID, // Use null if no category is selected
         }),
       });
+
+      const entry = await res.json();
+      /*console.log("ENTRY ID:", entry);*/
+
+      /*console.log("IMAGES: ", images);*/
+
+      for (const img of images) {
+        console.log("SAVING IMAGE:", img);
+        await fetch(`${API_URL}/entry-images`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: localStorage.getItem("token"),
+          },
+          body: JSON.stringify({
+            entry_id: entry.id,
+            image_url: img.image_url,
+          }),
+        });
+      }
+
       setIsNewEntry(false); // Reset the new entry flag after saving
+
+      setIsNewEntry(false);
+      setSelectedEntry(null); // прибираємо вибір
+      setTitle("");
+      setText("");
+      setCategoryId(null);
+      setImages([]);
+
       console.log("isMobile =", isMobile);
       if (isMobile) {
         console.log("SHOW LIST");
         setShowList(true);
       }
+
       loadEntries();
 
       return;
@@ -201,6 +235,20 @@ function App() {
         }),
       },
     );
+
+    for (const img of images) {
+      await fetch(`${API_URL}/entry-images`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: localStorage.getItem("token"),
+        },
+        body: JSON.stringify({
+          entry_id: selectedEntry.id, // важливо: використовуємо існуючий id
+          image_url: img.image_url,
+        }),
+      });
+    }
     setIsNewEntry(false); // Reset the new entry flag after saving
     loadEntries();
 
@@ -304,13 +352,33 @@ function App() {
   };
 
   //=== SELECT ENTRY ===
-  const selectEntry = (entry) => {
+  const selectEntry = async (entry) => {
+    setImages([]);
     setIsNewEntry(false); // Reset the new entry flag when selecting an existing entry
     setSelectedEntry(entry);
 
     setTitle(entry.title || ""); // Assuming entry has a title property
     setText(entry.content);
     setCategoryId(entry.category_id || DEFAULT_CATEGORY_ID); // Assuming entry has a category_id property
+
+    //for select images
+    const res = await fetch(`${API_URL}/entry-images/${entry.id}`, {
+      headers: {
+        Authorization: localStorage.getItem("token"),
+      },
+    });
+
+    const data = await res.json();
+    /*setImages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        image_url: data.url,
+      },
+    ]);*/
+    console.log("Images:", data);
+    setImages(data);
+    // end select images
 
     // for nobile hide
     if (isMobile) {
@@ -325,6 +393,7 @@ function App() {
     setSelectedEntry(null);
 
     // очищаем редактор
+    setImages([]);
     setTitle(""); // Clear title for new entry
     setText("");
     setCategoryId(""); // Clear category selection for new entry
@@ -353,6 +422,19 @@ function App() {
     });
 
     loadEntries();
+  };
+
+  //== DELETE IMAGES ==
+  const deleteImage = async (id) => {
+    await fetch(`${API_URL}/entry-images/${id}`, {
+      method: "DELETE",
+
+      headers: {
+        Authorization: localStorage.getItem("token"),
+      },
+    });
+
+    setImages((prev) => prev.filter((img) => img.id !== id));
   };
 
   //=== USE EFFECT ===
@@ -396,6 +478,34 @@ function App() {
 
     return matchesSearch && matchesCategory;
   });
+  /* ==== UPLOAD IMAGE ==== */
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    const formData = new FormData();
+
+    formData.append("image", file);
+
+    const res = await fetch(`${API_URL}/upload`, {
+      method: "POST",
+
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    setImages((prev) => [
+      ...prev,
+
+      {
+        id: Date.now(),
+
+        image_url: data.url,
+      },
+    ]);
+  };
 
   return (
     <div className="app">
@@ -554,16 +664,86 @@ function App() {
                   ))}
                 </select>
               </div>
-
+              {/*
+              <div className="images-container">
+                {images.map((img) => (
+                  <div key={img.id} className="image-wrapper">
+                    <img
+                      src={img.image_url}
+                      alt="entry"
+                      className="entry-image"
+                    />
+                    <button onClick={() => deleteImage(img.id)}>🗑️</button>
+                  </div>
+                ))}
+              </div>{" "}
+              */}
               <textarea
                 className="diary-editor"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Місце для думок..."
+                onPaste={async (e) => {
+                  const items = e.clipboardData.items;
+
+                  for (const item of items) {
+                    if (item.type.startsWith("image/")) {
+                      const file = item.getAsFile();
+
+                      console.log(file);
+                      const formData = new FormData();
+                      formData.append("image", file);
+
+                      const res = await fetch(`${API_URL}/upload`, {
+                        method: "POST",
+                        body: formData,
+                      });
+                      const data = await res.json();
+                      console.log(data);
+                      console.log(data.url);
+                      setImageUrl(data.url);
+                      setImages((prev) => [
+                        ...prev,
+
+                        {
+                          id: Date.now(),
+
+                          image_url: data.url,
+                        },
+                      ]);
+                      /*await fetch(`${API_URL}/entry-images`, {
+                        method: "POST",
+
+                        headers: {
+                          "Content-Type": "application/json",
+
+                          Authorization: localStorage.getItem("token"),
+                        },
+
+                        body: JSON.stringify({
+                          entry_id: selectedEntry.id,
+
+                          image_url: data.url,
+                        }),
+                      });*/
+                    }
+                  }
+                }}
               />
+              <div className="images-container">
+                {images.map((img) => (
+                  <div key={img.id} className="image-wrapper">
+                    <img
+                      src={img.image_url}
+                      alt="entry"
+                      className="entry-image"
+                    />
+                    <button onClick={() => deleteImage(img.id)}>🗑️</button>
+                  </div>
+                ))}
+              </div>
               <br />
               {/*<button onClick={addEntry}>        Додати       </button> */}
-
               {/* <button onClick={loadEntries}>        Оновити       </button> */}
             </div>
           </div>
@@ -589,6 +769,21 @@ function App() {
 
       {(selectedEntry || isNewEntry) && (
         <>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accуpt="image/*"
+            style={{ display: "none" }}
+            onChange={handleImageUpload}
+          />
+          <button
+            className="floating-image-btn"
+            onClick={() => fileInputRef.current.click()}
+            title="Вставити зображення"
+          >
+            🖼️
+          </button>
+
           <button
             className="floating-back-btn"
             onClick={() => {
@@ -597,6 +792,7 @@ function App() {
               setIsNewEntry(false);
               setTitle("");
               setText("");
+              setImages([]);
               setSelectedEntry(null);
             }}
           >
