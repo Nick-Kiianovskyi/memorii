@@ -217,11 +217,4 @@ The application allows users to create, organize, edit, search, and manage their
 
 - Render 
 
- 
-
-- 
-
- 
-
-Джерело: <https://m365.cloud.microsoft/chat/conversation/7d9f3a1b-382e-426f-9940-93ba6000cf66?fromcode=edgentp&redirectid=6a9a9fec36dd4be982f5ea4fd094cf9d&auth=2&handinClickTs=1788934660858>  
 
