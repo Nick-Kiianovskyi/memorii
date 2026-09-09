@@ -91,39 +91,24 @@ The application allows users to create, organize, edit, search, and manage their
 ## 📷 Screenshots 
 
  
+### Authorization Page
+![Authorization Page](screenshots/authoriz.png)
 
-### Main Page 
+### View note
+![view_note](screenshots/view_note.png)
 
+### Main Page create note
+![Main_create_note](screenshots/Main_create_note.png)
+
+### Create category
+![category](screenshots/category.png)
  
-
-![screenshots/main-page.png 
-
+### Screenshots,graphic file upload 
+![screens](screenshots/screens.png)
  
-
-### Entry Editor 
-
- 
-
-![Entry Editoreditor.png 
-
- 
-
-### Gallery 
-
- 
-
-![Galleryhots/gallery.png 
-
- 
-
 ### Mobile Version 
-
+![mobile](screenshots/mobile.png)
  
-
-![Mobile Versionbile.png 
-
- 
-
 --- 
 
  
